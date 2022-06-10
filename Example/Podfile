@@ -1,0 +1,13 @@
+use_frameworks!
+
+platform :ios, '9.0'
+
+target 'WeChatQRCodeScanner_Swift_Example' do
+  pod 'WeChatQRCodeScanner_Swift', :path => '../'
+
+  target 'WeChatQRCodeScanner_Swift_Tests' do
+    inherit! :search_paths
+
+    
+  end
+end
