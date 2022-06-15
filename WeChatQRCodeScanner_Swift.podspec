@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name = "WeChatQRCodeScanner_Swift"
-  s.version = "1.1.0"
+  s.version = "1.0.0"
   s.summary = "WeChatQRCodeScanner_Swift."
   s.description = <<-DESC
   微信开源二维码识别引擎Swift版本
@@ -26,22 +26,22 @@ Pod::Spec.new do |s|
     # "WeChatQRCodeScanner/Classes/**/*",
     "WeChatQRCodeScanner/Classes/*.{swift,h}",
   ]
-
-  #  s.preserve_paths = [
-  #    "WeChatQRCodeScanner/Frameworks",
-  #    "WeChatQRCodeScanner/Models",
-  #    # 'patch',
-  #    # 'script/build.sh'
-  #    "script/downloadlib.sh",
-  #  ]
-
-  # s.prepare_command =<<-CMD
-  #   script/build.sh "4.5.1"
-  # CMD
-
-  #  s.prepare_command = <<-CMD
-  #    script/downloadlib.sh "lib-v1"
-  #  CMD
+  
+  s.preserve_paths = [
+  "WeChatQRCodeScanner/Frameworks",
+  "WeChatQRCodeScanner/Models",
+  # 'patch',
+  # 'script/build.sh'
+  "script/downloadlib.sh",
+  ]
+  
+  #   s.prepare_command =<<-CMD
+  #     script/build.sh "4.6.0"
+  #   CMD
+  
+  s.prepare_command = <<-CMD
+  script/downloadlib.sh "lib-v1"
+  CMD
 
   s.vendored_frameworks = [
     "WeChatQRCodeScanner/Frameworks/*.framework",
@@ -79,9 +79,9 @@ Pod::Spec.new do |s|
     "EXCLUDED_ARCHS[sdk=iphonesimulator*]" => "arm64",
   }
 
-   s.user_target_xcconfig = {
-     'OTHER_CPLUSPLUSFLAGS' => '-fmodules -fcxx-modules'
-   }
+  #   s.user_target_xcconfig = {
+  #     'OTHER_CPLUSPLUSFLAGS' => '-fmodules -fcxx-modules'
+  #   }
 
   s.frameworks = [
     "AVFoundation",

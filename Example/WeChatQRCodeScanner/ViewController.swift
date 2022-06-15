@@ -97,7 +97,6 @@ class ViewController: UIViewController {
             let picker = UIImagePickerController()
             picker.sourceType = UIImagePickerController.SourceType.photoLibrary
             picker.delegate = self
-            picker.allowsEditing = true
             self?.present(picker, animated: true, completion: nil)
         }
     }
@@ -115,24 +114,26 @@ extension ViewController: UIImagePickerControllerDelegate, UINavigationControlle
         guard let image = editedImage ?? originalImage else {
             return
         }
-//        let arrayResult = CodeImageScanner.shared.scan(with: image)
-//        let arrayResult = DDBarCodeImageScanner().scanner(for: image)
-//        let format = UIGraphicsImageRendererFormat()
-//        format.scale = 1
-//        let renderer = UIGraphicsImageRenderer(size: image.size, format: format)
-//        let newImg = renderer.image { rendererContext in
-//            image.draw(at: .zero)
-//            for item in arrayResult {
-//                let path = UIBezierPath(rect: item.rectOfImage)
-//                path.lineWidth = 5
-//                if item.content.isEmpty {
-//                    UIColor.yellow.setStroke()
-//                } else {
-//                    UIColor.red.setStroke()
-//                }
-//                path.stroke()
-//            }
-//        }
+        let result = CodeImageScanner.shared.scan(with: image)
+//        let result = DDBarCodeImageScanner().scanner(for: image)
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1
+        let renderer = UIGraphicsImageRenderer(size: image.size, format: format)
+        let newImg = renderer.image { rendererContext in
+            image.draw(at: .zero)
+            for item in result {
+                let path = UIBezierPath(rect: item.rectOfImage)
+                path.lineWidth = 5
+                if item.content.isEmpty {
+                    UIColor.yellow.setStroke()
+                } else {
+                    UIColor.red.setStroke()
+                }
+                path.stroke()
+            }
+        }
+        let resultVc = ResultViewController(with: newImg)
+        present(resultVc, animated: true, completion: nil)
 //        print("arrayResult = \(arrayResult)")
     }
     

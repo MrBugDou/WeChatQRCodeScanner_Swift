@@ -7,7 +7,8 @@
 
 ## Example
 
-To run the example project, clone the repo, and run `pod install` from the Example directory first.
+* [OC版本](https://github.com/0x1306a94/WeChatQRCodeScanner)
+* 由于[barcode](https://github.com/opencv/opencv_contrib/tree/4.x/modules/barcode)目前只支持EAN-13格式条形码，且原生条形码是比尔效率较高，因此暂不支持条形码扫描
 
 ## Requirements
 

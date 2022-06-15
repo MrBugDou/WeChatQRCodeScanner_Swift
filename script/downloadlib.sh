@@ -9,7 +9,7 @@ LIB_UNZIP_DIR=$DOWNLOAD_DIR/lib
 
 mkdir -p $DOWNLOAD_DIR
 
-wget https://github.com/0x1306a94/WeChatQRCodeScanner/releases/download/$1/$1.zip -O $ZIP_FILE
+wget https://github.com/MrBugDou/WeChatQRCodeScanner_Swift/releases/download/$1/$1.zip -O $ZIP_FILE
 
 unzip -o $ZIP_FILE -d $DOWNLOAD_DIR
 
