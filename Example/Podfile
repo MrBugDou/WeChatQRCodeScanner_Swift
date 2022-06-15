@@ -1,13 +1,19 @@
-use_frameworks!
+source "https://github.com/CocoaPods/Specs.git"
 
-platform :ios, '9.0'
+platform :ios, "10.0"
+inhibit_all_warnings!
+use_frameworks! :linkage => :dynamic
+install! "cocoapods", :warn_for_unused_master_specs_repo => false
 
-target 'WeChatQRCodeScanner_Swift_Example' do
-  pod 'WeChatQRCodeScanner_Swift', :path => '../'
+target "WeChatQRCodeScanner" do
+  pod "WeChatQRCodeScanner_Swift", :path => "../"
 
-  target 'WeChatQRCodeScanner_Swift_Tests' do
+  pod "Toast-Swift"
+  pod "SwiftLint"
+  pod "SnapKit"
+  pod "R.swift"
+
+  target "WeChatQRCodeScannerTests" do
     inherit! :search_paths
-
-    
   end
 end
