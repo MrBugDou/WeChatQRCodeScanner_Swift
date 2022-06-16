@@ -65,7 +65,7 @@ Pod::Spec.new do |s|
       fi
     }.gsub(/[ \t]+/, " ").strip,
      :output_files => [%Q{
-    '$PODS_TARGET_SRCROOT/#{resourceBundleName}/Classes/#{resourceBundleName}.generated.swift'
+       $PODS_TARGET_SRCROOT/#{resourceBundleName}/Classes/#{resourceBundleName}.generated.swift
     }.gsub(/[ \t]+/, " ").strip] },
   ]
 
