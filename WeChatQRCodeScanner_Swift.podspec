@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name = "WeChatQRCodeScanner_Swift"
-  s.version = "1.0.0"
+  s.version = "1.0.1"
   s.summary = "WeChatQRCodeScanner_Swift."
   s.description = <<-DESC
   微信开源二维码识别引擎Swift版本

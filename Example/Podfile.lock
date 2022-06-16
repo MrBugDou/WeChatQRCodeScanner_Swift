@@ -5,7 +5,7 @@ PODS:
   - SnapKit (5.6.0)
   - SwiftLint (0.47.1)
   - Toast-Swift (5.0.1)
-  - WeChatQRCodeScanner_Swift (1.1.0):
+  - WeChatQRCodeScanner_Swift (1.0.0):
     - R.swift
 
 DEPENDENCIES:
@@ -33,7 +33,7 @@ SPEC CHECKSUMS:
   SnapKit: e01d52ebb8ddbc333eefe2132acf85c8227d9c25
   SwiftLint: f80f1be7fa96d30e0aa68e58d45d4ea1ccaac519
   Toast-Swift: 9b6a70f28b3bf0b96c40d46c0c4b9d6639846711
-  WeChatQRCodeScanner_Swift: 621a1ef31d0c8aafc5a1540e0116914818cbd067
+  WeChatQRCodeScanner_Swift: 30660486c8c0a46793b6ff8e130b92f0a396a54c
 
 PODFILE CHECKSUM: 2c9d21c19af49734c7a26afa2da6766b335ff0cc
 
