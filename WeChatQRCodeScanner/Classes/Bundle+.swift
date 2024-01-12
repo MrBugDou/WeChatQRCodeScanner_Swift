@@ -1,13 +1,14 @@
 //
-//  Bundle+.swift
-//  EPQuickLogin
+// Bundle+.swift
 //
-//  Created by DouDou on 2022/6/8.
+// Copyright (c) 2024 DouDou
+//
+// Created by DouDou on 2022/6/8.
 //
 
-import Foundation
+import UIKit
 
-fileprivate class BundleClass {}
+private class BundleClass {}
 
 public extension Bundle {
     /// 框架 bundle

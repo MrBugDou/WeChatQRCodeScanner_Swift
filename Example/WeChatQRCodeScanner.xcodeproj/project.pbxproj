@@ -16,7 +16,6 @@
 		DB6B14E7285356060028CC3B /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = DB6B14E5285356060028CC3B /* LaunchScreen.storyboard */; };
 		DB6B14F2285356060028CC3B /* WeChatQRCodeScannerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB6B14F1285356060028CC3B /* WeChatQRCodeScannerTests.swift */; };
 		DB850B2B28598D1000284AA3 /* 4_barcodes.jpg in Resources */ = {isa = PBXBuildFile; fileRef = DB850B2A28598D1000284AA3 /* 4_barcodes.jpg */; };
-		DB850B2F2859C29A00284AA3 /* R.generated.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB850B2E2859C29A00284AA3 /* R.generated.swift */; };
 		DB850B312859CE6C00284AA3 /* Permissions.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB850B302859CE6B00284AA3 /* Permissions.swift */; };
 /* End PBXBuildFile section */
 
@@ -49,7 +48,6 @@
 		DB6B14ED285356060028CC3B /* WeChatQRCodeScannerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WeChatQRCodeScannerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		DB6B14F1285356060028CC3B /* WeChatQRCodeScannerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeChatQRCodeScannerTests.swift; sourceTree = "<group>"; };
 		DB850B2A28598D1000284AA3 /* 4_barcodes.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = 4_barcodes.jpg; sourceTree = "<group>"; };
-		DB850B2E2859C29A00284AA3 /* R.generated.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = R.generated.swift; path = Resource/R.generated.swift; sourceTree = "<group>"; };
 		DB850B302859CE6B00284AA3 /* Permissions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Permissions.swift; sourceTree = "<group>"; };
 		E2AB05F0A7638507897C18B0 /* Pods_WeChatQRCodeScannerTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_WeChatQRCodeScannerTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -123,7 +121,6 @@
 				DB6B14DA285356050028CC3B /* AppDelegate.swift */,
 				DB6B14DE285356050028CC3B /* ViewController.swift */,
 				DB45442E2859E6CA0071417A /* ResultViewController.swift */,
-				DB850B2E2859C29A00284AA3 /* R.generated.swift */,
 				DB850B302859CE6B00284AA3 /* Permissions.swift */,
 				DB6B14E3285356060028CC3B /* Assets.xcassets */,
 				DB850B2A28598D1000284AA3 /* 4_barcodes.jpg */,
@@ -313,7 +310,6 @@
 				DB850B312859CE6C00284AA3 /* Permissions.swift in Sources */,
 				DB6B14DF285356050028CC3B /* ViewController.swift in Sources */,
 				DB6B14DB285356050028CC3B /* AppDelegate.swift in Sources */,
-				DB850B2F2859C29A00284AA3 /* R.generated.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -469,9 +465,11 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_STYLE = Automatic;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 77D4UG3ZD5;
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 95HDTSE7W5;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = WeChatQRCodeScanner/Info.plist;
 				INFOPLIST_KEY_NSCameraUsageDescription = "Demo演示需要访问您的相机";
@@ -482,7 +480,7 @@
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -490,6 +488,8 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.doudou.WeChatQRCodeScanner;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "match Development *";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -503,9 +503,11 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_STYLE = Automatic;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 77D4UG3ZD5;
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 95HDTSE7W5;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = WeChatQRCodeScanner/Info.plist;
 				INFOPLIST_KEY_NSCameraUsageDescription = "Demo演示需要访问您的相机";
@@ -516,7 +518,7 @@
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -524,6 +526,8 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.doudou.WeChatQRCodeScanner;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "match Development *";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -537,14 +541,18 @@
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 77D4UG3ZD5;
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 95HDTSE7W5;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.2;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.doudou.WeChatQRCodeScannerTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "match Development *";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -558,14 +566,18 @@
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 77D4UG3ZD5;
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 95HDTSE7W5;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.2;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.doudou.WeChatQRCodeScannerTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "match Development *";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";

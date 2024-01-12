@@ -1,51 +1,105 @@
 //
-//  CodeImageScanner.swift
-//  WeChatQRCodeScanner
+// CodeImageScanner.swift
 //
-//  Created by DouDou on 2022/6/11.
+// Copyright (c) 2024 DouDou
+//
+// Created by DouDou on 2022/6/10.
 //
 
 import Foundation
 import opencv2
+import UIKit
+import Vision
 
 public struct CodeImageScanner {
-    
     public static let shared = CodeImageScanner()
-    
+
     let scanner: WeChatQRCode
-    
+
     init() {
-        guard let detectPrototxt = R.file.detectPrototxt.path(),
-              let detectCaffemodel = R.file.detectCaffemodel.path(),
-              let srPrototxt = R.file.srPrototxt.path(),
-              let srCaffemodel = R.file.srCaffemodel.path() else {
-                  scanner = .init()
-                  return
-              }
+        let bundle: Bundle = .codeScanner
+        guard let detectPrototxt = bundle.path(forResource: "detect", ofType: "prototxt"),
+              let detectCaffemodel = bundle.path(forResource: "detect", ofType: "caffemodel"),
+              let srPrototxt = bundle.path(forResource: "sr", ofType: "prototxt"),
+              let srCaffemodel = bundle.path(forResource: "sr", ofType: "caffemodel") else {
+            scanner = .init()
+            return
+        }
         scanner = .init(detector_prototxt_path: detectPrototxt,
                         detector_caffe_model_path: detectCaffemodel,
                         super_resolution_prototxt_path: srPrototxt,
                         super_resolution_caffe_model_path: srCaffemodel)
     }
-    
+
     public func scan(with image: UIImage) -> [CodeScannerResult] {
-        return scan(with: image.mat())
+        scan(with: image.mat())
+//        detect(with: image)
     }
-    
-    public func scan(with image: Mat) -> [CodeScannerResult] {
+
+    private func scan(with image: Mat) -> [CodeScannerResult] {
         var points: [Mat] = []
-        let ret = scanner.detectAndDecode(img: image, points: &points)
+        let ret: [String] = scanner.detectAndDecode(img: image, points: &points)
         var result: [CodeScannerResult] = []
-        for idx in 0 ..< ret.count  {
+        for idx in 0..<ret.count {
             let point = points[idx]
             let left = (point.get(row: 0, col: 0).first ?? 0)
             let top = (point.get(row: 0, col: 1).first ?? 0)
             let right = (point.get(row: 1, col: 0).first ?? 0)
             let bottom = (point.get(row: 2, col: 1).first ?? 0)
             let rectOfImage = CGRect(x: left, y: top, width: right - left, height: bottom - top)
-            result.append(.init(content: ret[idx], rectOfImage: rectOfImage))
+            result.append(.init(content: ret[idx], rectOfImage: rectOfImage, type: .qr))
         }
         return result
     }
-    
+
+    public func detect(with image: UIImage?) -> [CodeScannerResult] {
+        var detectedBarcodes: [CodeScannerResult] = []
+        guard let cgimg = image?.cgImage else {
+            return detectedBarcodes
+        }
+
+        let request = VNDetectBarcodesRequest { req, err in
+            if let error = err {
+                Log.error("parseBarCode error: \(error)")
+                return
+            }
+            guard let results = req.results, !results.isEmpty else {
+                return
+            }
+            for result in results {
+                Log.debug("result: \(result)")
+                if let barcode = result as? VNBarcodeObservation, let value = barcode.payloadStringValue {
+                    let rectOfImage = convertRect(barcode.boundingBox, image)
+                    if barcode.symbology == .qr { // 二维码
+                        detectedBarcodes.append(.init(content: value, rectOfImage: rectOfImage, type: .qr))
+                        Log.debug("qrcode: \(value) rectOfImage: \(rectOfImage)")
+                    } else { // 条形码
+                        detectedBarcodes.append(.init(content: value, rectOfImage: rectOfImage, type: barcode.symbology))
+                        Log.debug("barcode: \(value), rectOfImage: \(rectOfImage), \(barcode.symbology.rawValue)")
+                    }
+                    break
+                }
+            }
+        }
+        let handler = VNImageRequestHandler(cgImage: cgimg)
+        do {
+            try handler.perform([request])
+        } catch {
+            Log.error("parseBarCode error: \(error)")
+        }
+        return detectedBarcodes
+    }
+
+    /// image坐标转换
+    private func convertRect(_ rectangleRect: CGRect, _ image: UIImage?) -> CGRect {
+        guard let image = image else { return .zero }
+        // 此处是将Image的实际尺寸转化成imageView的尺寸
+        let imageSize = image.size
+        let w = rectangleRect.width * imageSize.width
+        let h = rectangleRect.height * imageSize.height
+        let x = rectangleRect.minX * imageSize.width
+        // 该Y坐标与UIView的Y坐标是相反的
+        let y = (1 - rectangleRect.minY) * imageSize.height - h
+        return CGRect(x: x, y: y, width: w, height: h)
+    }
 }

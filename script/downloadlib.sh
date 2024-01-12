@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -ex 
+set -ex
 
 CUR_DIR=$PWD
 DOWNLOAD_DIR=$CUR_DIR/download_dir

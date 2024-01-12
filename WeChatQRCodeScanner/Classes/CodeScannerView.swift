@@ -1,52 +1,53 @@
 //
-//  CodeScannerView.swift
-//  WeChatQRCodeScanner
+// CodeScannerView.swift
 //
-//  Created by DouDou on 2022/6/11.
+// Copyright (c) 2024 DouDou
+//
+// Created by DouDou on 2022/6/11.
 //
 
-import opencv2
-import Foundation
 import AVFoundation
+import opencv2
+import UIKit
+import Vision
 
 public protocol CodeScannerViewDelegate: NSObjectProtocol {
     func scannerView(_ view: CodeScannerView, scanComplete result: [CodeScannerResult], elapsedTime: TimeInterval) -> Bool
 }
 
 open class CodeScannerView: UIView {
-    
-    //输入输出中间桥梁(会话)
-    private lazy var session = AVCaptureSession()
-    
-    var stoped: Bool = false
-    
-    public weak var delegate: CodeScannerViewDelegate?
-    
+    // MARK: Open
+
     open func startScanner() throws {
-        
-        guard let device = AVCaptureDevice.default(for: .video) else { return }
+        guard let device = AVCaptureDevice.default(for: .video) else {
+            return
+        }
         try? device.lockForConfiguration()
 //        if device.isFocusPointOfInterestSupported, device.isFocusModeSupported(.autoFocus) {
 //            device.focusMode = .autoFocus
 //        }
         device.activeVideoMaxFrameDuration = .init(value: 1, timescale: 25)
         device.unlockForConfiguration()
-        
-        guard let deviceInput = try? AVCaptureDeviceInput(device: device) else { return }
 
-        // let session = AVCaptureSession()
-        // session.sessionPreset = .hd1280x720
-        
+        guard let deviceInput = try? AVCaptureDeviceInput(device: device) else {
+            return
+        }
+
+        let session = AVCaptureSession()
+        if session.canSetSessionPreset(.high) {
+            session.sessionPreset = .high
+        }
+
         if session.canAddInput(deviceInput) {
             session.addInput(deviceInput)
         }
-        
+
+        // 设置输出以检测条形码
+//        let metadataOutput = AVCaptureMetadataOutput()
+
+        // opencv
         let metadataOutput = AVCaptureVideoDataOutput()
-        let key = kCVPixelBufferPixelFormatTypeKey as String
-        metadataOutput.videoSettings = [key: kCVPixelFormatType_32BGRA]
-        metadataOutput.alwaysDiscardsLateVideoFrames = true
-        metadataOutput.setSampleBufferDelegate(self, queue: .main)
-        
+
         var videoConnection: AVCaptureConnection?
         for connection in metadataOutput.connections {
             for port in connection.inputPorts {
@@ -59,106 +60,208 @@ open class CodeScannerView: UIView {
                 break
             }
         }
-        
+
         videoConnection?.videoOrientation = .portrait
-        
+
         if session.canAddOutput(metadataOutput) {
             session.addOutput(metadataOutput)
+            // 设置输出以检测条形码
+//            metadataOutput.setMetadataObjectsDelegate(self, queue: .main)
+//            metadataOutput.metadataObjectTypes = [.qr, .ean8, .ean13, .code128] // 可以根据需要添加其他类型
+//            metadataOutput.rectOfInterest = .init(x: 0, y: 0, width: 1, height: 1) // 全屏扫描
+            // opencv
+            let key = kCVPixelBufferPixelFormatTypeKey as String
+            metadataOutput.videoSettings = [key: kCVPixelFormatType_32BGRA]
+            metadataOutput.alwaysDiscardsLateVideoFrames = true
+            metadataOutput.setSampleBufferDelegate(self, queue: .main)
         }
-            
-        let previewLayer: AVCaptureVideoPreviewLayer = AVCaptureVideoPreviewLayer(session: session)
+
+        let previewLayer = AVCaptureVideoPreviewLayer(session: session)
         previewLayer.videoGravity = .resizeAspectFill
         previewLayer.frame = bounds
         layer.insertSublayer(previewLayer, at: 0)
-        
+        self.previewLayer = previewLayer
+
         if !session.isRunning {
             stoped = false
             session.startRunning()
         }
+
+        self.session = session
     }
-    
+
     open func stopScanner() {
+        guard let session = session else {
+            stoped = true
+            return
+        }
         if session.isRunning {
             stoped = true
             session.stopRunning()
         }
     }
-    
+
     open func changeTorchMode(on: Bool) {
         guard let device = AVCaptureDevice.default(for: .video),
               device.hasTorch, device.isTorchAvailable else {
-                  return
-              }
-        
+            return
+        }
+
         try? device.lockForConfiguration()
-        
+
         device.torchMode = on ? .on : .off
-        
+
         device.unlockForConfiguration()
     }
 
+    // MARK: Public
+
+    public weak var delegate: CodeScannerViewDelegate?
+
+    public weak var previewLayer: AVCaptureVideoPreviewLayer?
+
+    // MARK: Internal
+
+    var stoped: Bool = false
+
+    // MARK: Private
+
+    /// 输入输出中间桥梁(会话)
+    private var session: AVCaptureSession?
+}
+
+extension CodeScannerView: AVCaptureMetadataOutputObjectsDelegate {
+    /// 当检测到条形码时调用
+    public func metadataOutput(_: AVCaptureMetadataOutput, didOutput metadataObjects: [AVMetadataObject], from _: AVCaptureConnection) {
+        guard !stoped else {
+            return
+        }
+
+        let objects = metadataObjects.map { [weak self] object in
+            self?.previewLayer?.transformedMetadataObject(for: object)
+        }
+
+        let reads = objects.compactMap { $0 as? AVMetadataMachineReadableCodeObject }
+
+        guard !stoped, !reads.isEmpty else {
+            return
+        }
+
+        // 在这里处理扫描到的条形码
+        AudioServicesPlaySystemSound(SystemSoundID(kSystemSoundID_Vibrate))
+
+        let start = CACurrentMediaTime()
+        let elapsedTime = CACurrentMediaTime() - start
+
+        var result: [CodeScannerResult] = []
+
+        for read in reads {
+            guard let content = read.stringValue, !content.isEmpty else {
+                Log.debug("未能识别到内容")
+                break
+            }
+
+            guard let type = convert(from: read.type) else {
+                Log.debug("不支持的码类型: \(read.type.rawValue) - \(content)")
+                break
+            }
+
+            Log.debug("code: \(content), type: \(type.rawValue) bounds: \(read.bounds)")
+
+            result.append(.init(content: content, rectOfImage: read.bounds, type: type))
+        }
+
+        stoped = delegate?.scannerView(self, scanComplete: result, elapsedTime: elapsedTime as TimeInterval) ?? false
+
+        guard stoped else {
+            return
+        }
+
+        stopScanner()
+    }
+
+    func convert(from objectType: AVMetadataObject.ObjectType) -> VNBarcodeSymbology? {
+        switch objectType {
+        case .qr:
+            return .qr
+        case .ean8:
+            return .ean8
+        case .ean13:
+            return .ean13
+        case .code128:
+            return .code128
+        default:
+            return nil
+        }
+    }
 }
 
 extension CodeScannerView: AVCaptureVideoDataOutputSampleBufferDelegate {
-    public func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
-        
-        if stoped {
+    public func captureOutput(_: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from _: AVCaptureConnection) {
+        guard !stoped else {
             return
         }
-        
+
         guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else {
             return
         }
-        
+
         CVPixelBufferLockBaseAddress(pixelBuffer, .readOnly)
-        
+
         guard let imgBufAddr = CVPixelBufferGetBaseAddressOfPlane(pixelBuffer, 0) else {
             return
         }
-        
+
         let width = CVPixelBufferGetWidth(pixelBuffer)
         let height = CVPixelBufferGetHeight(pixelBuffer)
         let bytesPerRow = CVPixelBufferGetBytesPerRow(pixelBuffer)
-        
+
 //        let ciImage = CIImage(cvImageBuffer: pixelBuffer)
 //        let image = UIImage(ciImage: ciImage)
-        let imgData = Data(bytes: imgBufAddr, count: (bytesPerRow * height))
-        
+        let imgData = Data(bytes: imgBufAddr, count: bytesPerRow * height)
+
         let mat = Mat(rows: Int32(height), cols: Int32(width), type: CvType.CV_8UC4, data: imgData, step: 0)
-        
+
         let transMat = Mat()
         Core.transpose(src: mat, dst: transMat)
-        
+
         let flipMat = Mat()
         Core.flip(src: transMat, dst: flipMat, flipCode: 1)
-        
+
         CVPixelBufferUnlockBaseAddress(pixelBuffer, .readOnly)
-        
+
         var points: [Mat] = []
-        let start = CACurrentMediaTime()
-        let ret = CodeImageScanner.shared.scanner.detectAndDecode(img: flipMat, points: &points)
-        let elapsedTime = CACurrentMediaTime() - start
-        
-        if stoped {
+        let ret: [String] = CodeImageScanner.shared.scanner.detectAndDecode(img: flipMat, points: &points)
+
+        guard !stoped, !ret.isEmpty else {
             return
         }
-        
+
+        // 在这里处理扫描到的条形码
+        AudioServicesPlaySystemSound(SystemSoundID(kSystemSoundID_Vibrate))
+
+        let start = CACurrentMediaTime()
         var result: [CodeScannerResult] = []
-        for idx in 0 ..< ret.count  {
+        let elapsedTime = CACurrentMediaTime() - start
+        for idx in 0..<ret.count {
             let point = points[idx]
             let left = (point.get(row: 0, col: 0).first ?? 0)
             let top = (point.get(row: 0, col: 1).first ?? 0)
             let right = (point.get(row: 1, col: 0).first ?? 0)
             let bottom = (point.get(row: 2, col: 1).first ?? 0)
             let rectOfImage = CGRect(x: left, y: top, width: right - left, height: bottom - top)
-            
             let sx = bounds.width / CGFloat(height)
             let sy = bounds.height / CGFloat(width)
             let transform = CGAffineTransform.identity.scaledBy(x: sx, y: sy)
             let rectOfView = rectOfImage.applying(transform)
-            result.append(.init(content: ret[idx], rectOfImage: rectOfImage, rectOfView: rectOfView))
+            result.append(.init(content: ret[idx], rectOfImage: rectOfView, type: .qr))
         }
         stoped = delegate?.scannerView(self, scanComplete: result, elapsedTime: elapsedTime as TimeInterval) ?? false
+
+        guard stoped else {
+            return
+        }
+
+        stopScanner()
     }
 }
-

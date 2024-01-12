@@ -1,22 +1,22 @@
 //
-//  ViewController.swift
-//  WeChatQRCodeScanner
+// ViewController.swift
 //
-//  Created by DouDou on 2022/6/10.
+// Copyright (c) 2024 DouDou
+//
+// Created by DouDou on 2022/6/10.
 //
 
-import UIKit
 import Photos
+import UIKit
 import WeChatQRCodeScanner_Swift
 
 class ViewController: UIViewController {
-
     weak var containerLayer: CALayer!
 
     weak var scannerView: CodeScannerView!
-        
+
     var reuseMarkLayers: [CAShapeLayer] = []
-    
+
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         do {
@@ -27,13 +27,13 @@ class ViewController: UIViewController {
             print("startScanner error: \(error)")
         }
     }
-    
+
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         scannerView.delegate = nil
         scannerView.stopScanner()
     }
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
@@ -46,52 +46,50 @@ class ViewController: UIViewController {
 //        guard let image1 = R.image.qrcodes() else { return }
 //        let ret2 = CodeImageScanner.shared.scan(with: image1)
 //        print("ret1 = \(ret2)")
-        
+
         let scannerView = CodeScannerView(frame: view.bounds)
         scannerView.delegate = self
         view.addSubview(scannerView)
         self.scannerView = scannerView
-        
+
         drawBottomItems()
-        
+
         let containerLayer = CALayer()
         containerLayer.frame = scannerView.layer.bounds
         containerLayer.backgroundColor = UIColor.clear.cgColor
         scannerView.layer.addSublayer(containerLayer)
         self.containerLayer = containerLayer
-        
     }
 
     func drawBottomItems() {
-
-        let bottomItemsView = UIView(frame: CGRect(x: 0.0, y: self.view.frame.maxY - 100, width: self.view.frame.size.width, height: 100))
+        let bottomItemsView = UIView(frame: CGRect(x: 0.0, y: view.frame.maxY - 100, width: view.frame.size.width, height: 100))
         bottomItemsView.backgroundColor = UIColor(red: 0.0, green: 0.0, blue: 0.0, alpha: 0.6)
         scannerView.addSubview(bottomItemsView)
 
-        let  btnFlash = UIButton(type: .custom)
-        btnFlash.setImage(R.image.qrCodeLightOpen(), for: .normal)
+        let btnFlash = UIButton(type: .custom)
+        btnFlash.setImage(UIImage(named: "QRCodeLightOpen"), for: .normal)
         btnFlash.addTarget(self, action: #selector(openOrCloseFlash(_:)), for: .touchUpInside)
-        btnFlash.frame = .init(x: (bottomItemsView.center.x*0.5 - 50), y: 10, width: 100, height: 80)
+        btnFlash.frame = .init(x: bottomItemsView.center.x * 0.5 - 50, y: 10, width: 100, height: 80)
         bottomItemsView.addSubview(btnFlash)
 
         let btnPhoto = UIButton(type: .custom)
         btnPhoto.addTarget(self, action: #selector(openPhotoAlbum), for: .touchUpInside)
-        btnPhoto.frame = .init(x: (bottomItemsView.center.x*1.5 - 50), y: 10, width: 100, height: 80)
-        btnPhoto.setImage(R.image.qrCodeAlbum(), for: .normal)
+        btnPhoto.frame = .init(x: bottomItemsView.center.x * 1.5 - 50, y: 10, width: 100, height: 80)
+        btnPhoto.setImage(UIImage(named: "QRCodeAlbum"), for: .normal)
         bottomItemsView.addSubview(btnPhoto)
     }
-    
+
     // 开关闪光灯
     @objc func openOrCloseFlash(_ sender: UIButton) {
         sender.isSelected = !sender.isSelected
         scannerView.changeTorchMode(on: sender.isSelected)
         if sender.isSelected {
-            sender.setImage(R.image.qrCodeLightClose(), for: .normal)
+            sender.setImage(UIImage(named: "QRCodeLightClose"), for: .normal)
         } else {
-            sender.setImage(R.image.qrCodeLightOpen(), for: .normal)
+            sender.setImage(UIImage(named: "QRCodeLightOpen"), for: .normal)
         }
     }
-    
+
     @objc open func openPhotoAlbum() {
         Permissions.authorizePhotoWith { [weak self] _ in
             let picker = UIImagePickerController()
@@ -100,13 +98,13 @@ class ViewController: UIViewController {
             self?.present(picker, animated: true, completion: nil)
         }
     }
-    
 }
 
 // MARK: - 图片选择代理方法
+
 extension ViewController: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
-    
     // MARK: 相册选择图片识别二维码 （条形码没有找到系统方法）
+
     public func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]) {
         picker.dismiss(animated: true, completion: nil)
         let editedImage = info[UIImagePickerController.InfoKey.editedImage] as? UIImage
@@ -119,7 +117,7 @@ extension ViewController: UIImagePickerControllerDelegate, UINavigationControlle
         let format = UIGraphicsImageRendererFormat()
         format.scale = 1
         let renderer = UIGraphicsImageRenderer(size: image.size, format: format)
-        let newImg = renderer.image { rendererContext in
+        let newImg = renderer.image { _ in
             image.draw(at: .zero)
             for item in result {
                 let path = UIBezierPath(rect: item.rectOfImage)
@@ -136,11 +134,9 @@ extension ViewController: UIImagePickerControllerDelegate, UINavigationControlle
         present(resultVc, animated: true, completion: nil)
 //        print("arrayResult = \(arrayResult)")
     }
-    
 }
 
 extension ViewController: CodeScannerViewDelegate {
-    
     private func clearMarkLayers() {
         guard let sublayers = containerLayer.sublayers as? [CAShapeLayer], !sublayers.isEmpty else { return }
         reuseMarkLayers.append(contentsOf: sublayers)
@@ -149,20 +145,18 @@ extension ViewController: CodeScannerViewDelegate {
         }
     }
 
-    
-    func scannerView(_ view: CodeScannerView, scanComplete result: [CodeScannerResult], elapsedTime: TimeInterval) -> Bool {
-        
+    func scannerView(_: CodeScannerView, scanComplete result: [CodeScannerResult], elapsedTime _: TimeInterval) -> Bool {
         clearMarkLayers()
-        
+
         if result.isEmpty {
             return false
         }
-        
+
         drawCorner(result: result)
-        
+
         return false
     }
-    
+
     func drawCorner(result: [CodeScannerResult]) {
         for element in result {
             var markLayer: CAShapeLayer
@@ -171,16 +165,17 @@ extension ViewController: CodeScannerViewDelegate {
                 reuseMarkLayers.removeLast()
             } else {
                 markLayer = .init()
-                markLayer.fillColor   = UIColor.clear.cgColor
+                markLayer.fillColor = UIColor.clear.cgColor
                 markLayer.strokeColor = UIColor.green.cgColor
-                markLayer.fillRule    = .evenOdd
-                markLayer.lineWidth   = 2
+                markLayer.fillRule = .evenOdd
+                markLayer.lineWidth = 2
             }
-            
-            let path = UIBezierPath(rect: element.rectOfView)
+
+            let path = UIBezierPath(rect: element.rectOfImage)
             markLayer.path = path.cgPath
             containerLayer.addSublayer(markLayer)
+
+            print("element = \(element.content)")
         }
     }
-    
 }
