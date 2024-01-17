@@ -16,7 +16,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   SnapKit: e01d52ebb8ddbc333eefe2132acf85c8227d9c25
-  WeChatQRCodeScanner_Swift: e6fe82a2619d8adb1abbff1be6d381147a6078f7
+  WeChatQRCodeScanner_Swift: 531d65be2cc0c348e515c73a7b1586d1ce4f8bed
 
 PODFILE CHECKSUM: 6a1fccd86760d88c44f30a0f9ae68065543cc3bd
 

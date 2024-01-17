@@ -1,0 +1,13 @@
+{
+	"files.associations": {
+		"*.js": "javascript",
+		"*.json": "jsonc",
+		"*.cjson": "jsonc",
+		"*.wxss": "css",
+		"*.wxs": "javascript",
+		"*.swig": "html",
+		"*.arb": "jsonc",
+		".swiftformat": "gemfile",
+		"ios": "cpp"
+	}
+}

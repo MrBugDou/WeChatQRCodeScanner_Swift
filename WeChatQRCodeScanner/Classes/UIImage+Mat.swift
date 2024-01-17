@@ -9,6 +9,25 @@
 import opencv2
 import UIKit
 
+let CV_CN_SHIFT: Int32 = 3
+let CV_DEPTH_MAX: Int32 = (1 << CV_CN_SHIFT)
+
+let CV_8U: Int32 = 0
+
+let CV_MAT_DEPTH_MASK = (CV_DEPTH_MAX - 1)
+func CV_MAT_DEPTH(flags: Int32) -> Int32 {
+    flags & CV_MAT_DEPTH_MASK
+}
+
+func CV_MAKETYPE(depth: Int32, cn: Int32) -> Int32 {
+    CV_MAT_DEPTH(flags: depth) + ((cn - 1) << CV_CN_SHIFT)
+}
+
+let CV_8UC1 = CV_MAKETYPE(depth: CV_8U, cn: 1)
+let CV_8UC2 = CV_MAKETYPE(depth: CV_8U, cn: 2)
+let CV_8UC3 = CV_MAKETYPE(depth: CV_8U, cn: 3)
+let CV_8UC4 = CV_MAKETYPE(depth: CV_8U, cn: 4)
+
 extension UIImage {
     func mat() -> Mat {
         guard let cgImage = cgImage, var colorSpace = cgImage.colorSpace else { fatalError() }
@@ -23,7 +42,7 @@ extension UIImage {
         let context: CGContext?
 
         if colorSpace.model == .monochrome {
-            mat = Mat(rows: Int32(rows), cols: Int32(cols), type: CvType.CV_8UC1)
+            mat = Mat(rows: Int32(rows), cols: Int32(cols), type: CV_8UC1)
             bitmapInfo = CGImageAlphaInfo.none.rawValue
             if hasAlphaChannel {
                 mat = mat.setTo(scalar: Scalar(0))
@@ -38,7 +57,7 @@ extension UIImage {
                 bitmapInfo: bitmapInfo)
         } else if colorSpace.model == .indexed {
             colorSpace = CGColorSpaceCreateDeviceRGB()
-            mat = Mat(rows: Int32(rows), cols: Int32(cols), type: CvType.CV_8UC4)
+            mat = Mat(rows: Int32(rows), cols: Int32(cols), type: CV_8UC4)
             if !hasAlphaChannel {
                 bitmapInfo = CGImageAlphaInfo.noneSkipLast.rawValue | CGImageByteOrderInfo.orderDefault.rawValue
             } else {
@@ -53,7 +72,7 @@ extension UIImage {
                 space: colorSpace,
                 bitmapInfo: bitmapInfo)
         } else {
-            mat = Mat(rows: Int32(rows), cols: Int32(cols), type: CvType.CV_8UC4)
+            mat = Mat(rows: Int32(rows), cols: Int32(cols), type: CV_8UC4)
             if !hasAlphaChannel {
                 bitmapInfo = CGImageAlphaInfo.noneSkipLast.rawValue | CGImageByteOrderInfo.orderDefault.rawValue
             } else {

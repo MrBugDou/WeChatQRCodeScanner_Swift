@@ -3,7 +3,7 @@
 //
 // Copyright (c) 2024 DouDou
 //
-// Created by DouDou on 2022/6/10.
+// Created by DouDou on 2024/1/15.
 //
 
 import Foundation
@@ -32,22 +32,19 @@ public struct CodeImageScanner {
     }
 
     public func scan(with image: UIImage) -> [CodeScannerResult] {
-        scan(with: image.mat())
-//        detect(with: image)
+//        scan(with: image.mat())
+        detect(with: image)
     }
 
     private func scan(with image: Mat) -> [CodeScannerResult] {
-        var points: [Mat] = []
-        let ret: [String] = scanner.detectAndDecode(img: image, points: &points)
+        let points = NSMutableArray()
+        let ret: [String] = scanner.detectAndDecode(img: image, points: points)
         var result: [CodeScannerResult] = []
         for idx in 0..<ret.count {
-            let point = points[idx]
-            let left = (point.get(row: 0, col: 0).first ?? 0)
-            let top = (point.get(row: 0, col: 1).first ?? 0)
-            let right = (point.get(row: 1, col: 0).first ?? 0)
-            let bottom = (point.get(row: 2, col: 1).first ?? 0)
-            let rectOfImage = CGRect(x: left, y: top, width: right - left, height: bottom - top)
-            result.append(.init(content: ret[idx], rectOfImage: rectOfImage, type: .qr))
+            guard let point = points[idx] as? Mat else {
+                continue
+            }
+            result.append(.init(content: ret[idx], rectOfImage: point.rectOfImage, type: .qr))
         }
         return result
     }

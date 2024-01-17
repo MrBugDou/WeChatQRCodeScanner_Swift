@@ -3,7 +3,7 @@
 //
 // Copyright (c) 2024 DouDou
 //
-// Created by DouDou on 2022/6/11.
+// Created by DouDou on 2024/1/15.
 //
 
 import AVFoundation
@@ -15,10 +15,20 @@ public protocol CodeScannerViewDelegate: NSObjectProtocol {
     func scannerView(_ view: CodeScannerView, scanComplete result: [CodeScannerResult], elapsedTime: TimeInterval) -> Bool
 }
 
-open class CodeScannerView: UIView {
-    // MARK: Open
+public class CodeScannerView: UIView {
+    // MARK: Public
 
-    open func startScanner() throws {
+    public weak var delegate: CodeScannerViewDelegate?
+
+    public weak var previewLayer: AVCaptureVideoPreviewLayer?
+
+    public override func layoutSubviews() {
+        super.layoutSubviews()
+        previewBounds = bounds
+        previewLayer?.frame = bounds
+    }
+    
+    public func startScanner() throws {
         guard let device = AVCaptureDevice.default(for: .video) else {
             return
         }
@@ -43,10 +53,10 @@ open class CodeScannerView: UIView {
         }
 
         // 设置输出以检测条形码
-//        let metadataOutput = AVCaptureMetadataOutput()
+        let metadataOutput = AVCaptureMetadataOutput()
 
         // opencv
-        let metadataOutput = AVCaptureVideoDataOutput()
+//        let metadataOutput = AVCaptureVideoDataOutput()
 
         var videoConnection: AVCaptureConnection?
         for connection in metadataOutput.connections {
@@ -66,14 +76,14 @@ open class CodeScannerView: UIView {
         if session.canAddOutput(metadataOutput) {
             session.addOutput(metadataOutput)
             // 设置输出以检测条形码
-//            metadataOutput.setMetadataObjectsDelegate(self, queue: .main)
-//            metadataOutput.metadataObjectTypes = [.qr, .ean8, .ean13, .code128] // 可以根据需要添加其他类型
-//            metadataOutput.rectOfInterest = .init(x: 0, y: 0, width: 1, height: 1) // 全屏扫描
+            metadataOutput.setMetadataObjectsDelegate(self, queue: sessionQueue)
+            metadataOutput.metadataObjectTypes = [.qr, .ean8, .ean13, .code128] // 可以根据需要添加其他类型
+            metadataOutput.rectOfInterest = .init(x: 0, y: 0, width: 1, height: 1) // 全屏扫描
             // opencv
-            let key = kCVPixelBufferPixelFormatTypeKey as String
-            metadataOutput.videoSettings = [key: kCVPixelFormatType_32BGRA]
-            metadataOutput.alwaysDiscardsLateVideoFrames = true
-            metadataOutput.setSampleBufferDelegate(self, queue: .main)
+//            let key = kCVPixelBufferPixelFormatTypeKey as String
+//            metadataOutput.videoSettings = [key: kCVPixelFormatType_32BGRA]
+//            metadataOutput.alwaysDiscardsLateVideoFrames = true
+//            metadataOutput.setSampleBufferDelegate(self, queue: sessionQueue)
         }
 
         let previewLayer = AVCaptureVideoPreviewLayer(session: session)
@@ -90,7 +100,7 @@ open class CodeScannerView: UIView {
         self.session = session
     }
 
-    open func stopScanner() {
+    public func stopScanner() {
         guard let session = session else {
             stoped = true
             return
@@ -101,7 +111,7 @@ open class CodeScannerView: UIView {
         }
     }
 
-    open func changeTorchMode(on: Bool) {
+    public func changeTorchMode(on: Bool) {
         guard let device = AVCaptureDevice.default(for: .video),
               device.hasTorch, device.isTorchAvailable else {
             return
@@ -113,13 +123,7 @@ open class CodeScannerView: UIView {
 
         device.unlockForConfiguration()
     }
-
-    // MARK: Public
-
-    public weak var delegate: CodeScannerViewDelegate?
-
-    public weak var previewLayer: AVCaptureVideoPreviewLayer?
-
+    
     // MARK: Internal
 
     var stoped: Bool = false
@@ -128,6 +132,10 @@ open class CodeScannerView: UIView {
 
     /// 输入输出中间桥梁(会话)
     private var session: AVCaptureSession?
+
+    private var previewBounds: CGRect = .zero
+
+    private let sessionQueue = DispatchQueue(label: "com.doudou.scanner.camera.sessionQueue", qos: .background)
 }
 
 extension CodeScannerView: AVCaptureMetadataOutputObjectsDelegate {
@@ -171,13 +179,17 @@ extension CodeScannerView: AVCaptureMetadataOutputObjectsDelegate {
             result.append(.init(content: content, rectOfImage: read.bounds, type: type))
         }
 
-        stoped = delegate?.scannerView(self, scanComplete: result, elapsedTime: elapsedTime as TimeInterval) ?? false
-
-        guard stoped else {
-            return
+        DispatchQueue.main.async { [weak self] in
+            guard let sSelf = self else {
+                return
+            }
+            let stoped = self?.delegate?.scannerView(sSelf, scanComplete: result, elapsedTime: elapsedTime as TimeInterval) ?? false
+            self?.stoped = stoped
+            guard stoped else {
+                return
+            }
+            self?.stopScanner()
         }
-
-        stopScanner()
     }
 
     func convert(from objectType: AVMetadataObject.ObjectType) -> VNBarcodeSymbology? {
@@ -220,7 +232,7 @@ extension CodeScannerView: AVCaptureVideoDataOutputSampleBufferDelegate {
 //        let image = UIImage(ciImage: ciImage)
         let imgData = Data(bytes: imgBufAddr, count: bytesPerRow * height)
 
-        let mat = Mat(rows: Int32(height), cols: Int32(width), type: CvType.CV_8UC4, data: imgData, step: 0)
+        let mat = Mat(rows: Int32(height), cols: Int32(width), type: CV_8UC4, data: imgData, step: 0)
 
         let transMat = Mat()
         Core.transpose(src: mat, dst: transMat)
@@ -230,8 +242,8 @@ extension CodeScannerView: AVCaptureVideoDataOutputSampleBufferDelegate {
 
         CVPixelBufferUnlockBaseAddress(pixelBuffer, .readOnly)
 
-        var points: [Mat] = []
-        let ret: [String] = CodeImageScanner.shared.scanner.detectAndDecode(img: flipMat, points: &points)
+        let points = NSMutableArray()
+        let ret: [String] = CodeImageScanner.shared.scanner.detectAndDecode(img: flipMat, points: points)
 
         guard !stoped, !ret.isEmpty else {
             return
@@ -244,24 +256,27 @@ extension CodeScannerView: AVCaptureVideoDataOutputSampleBufferDelegate {
         var result: [CodeScannerResult] = []
         let elapsedTime = CACurrentMediaTime() - start
         for idx in 0..<ret.count {
-            let point = points[idx]
-            let left = (point.get(row: 0, col: 0).first ?? 0)
-            let top = (point.get(row: 0, col: 1).first ?? 0)
-            let right = (point.get(row: 1, col: 0).first ?? 0)
-            let bottom = (point.get(row: 2, col: 1).first ?? 0)
-            let rectOfImage = CGRect(x: left, y: top, width: right - left, height: bottom - top)
-            let sx = bounds.width / CGFloat(height)
-            let sy = bounds.height / CGFloat(width)
+            guard let point = points[idx] as? Mat else {
+                continue
+            }
+            let sx = previewBounds.width / CGFloat(height)
+            let sy = previewBounds.height / CGFloat(width)
             let transform = CGAffineTransform.identity.scaledBy(x: sx, y: sy)
-            let rectOfView = rectOfImage.applying(transform)
+            let rectOfView = point.rectOfImage.applying(transform)
+            Log.debug("code: \(ret[idx]), rectOfImage: \(point.rectOfImage)")
             result.append(.init(content: ret[idx], rectOfImage: rectOfView, type: .qr))
         }
-        stoped = delegate?.scannerView(self, scanComplete: result, elapsedTime: elapsedTime as TimeInterval) ?? false
 
-        guard stoped else {
-            return
+        DispatchQueue.main.async { [weak self] in
+            guard let sSelf = self else {
+                return
+            }
+            let stoped = self?.delegate?.scannerView(sSelf, scanComplete: result, elapsedTime: elapsedTime as TimeInterval) ?? false
+            self?.stoped = stoped
+            guard stoped else {
+                return
+            }
+            self?.stopScanner()
         }
-
-        stopScanner()
     }
 }

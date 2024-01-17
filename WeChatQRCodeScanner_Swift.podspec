@@ -23,15 +23,15 @@ Pod::Spec.new do |s|
   s.ios.deployment_target = "11.0"
 
   s.source_files = [
-    # "WeChatQRCodeScanner/Classes/**/*",
-    "WeChatQRCodeScanner/Classes/*.{swift,h}",
+    # "WeChatQRCodeScanner/Classes/Objc/*",
+    "WeChatQRCodeScanner/Classes/*.{swift,h,mm}",
   ]
 
   s.preserve_paths = [
     "WeChatQRCodeScanner/Frameworks",
     "WeChatQRCodeScanner/Models",
     # 'patch',
-    # 'script/build.sh'
+    # 'script/build.sh',
     "script/downloadlib.sh",
   ]
 
@@ -39,12 +39,13 @@ Pod::Spec.new do |s|
   #     script/build.sh "4.9.0"
   # CMD
 
-  s.prepare_command = <<-CMD
-  script/downloadlib.sh "lib-v1"
-  CMD
+  # s.prepare_command = <<-CMD
+  # script/downloadlib.sh "lib-v4.9.0"
+  # CMD
 
   s.vendored_frameworks = [
     "WeChatQRCodeScanner/Frameworks/*.framework",
+  # "WeChatQRCodeScanner/Frameworks/*.xcframework",
   ]
 
   s.resource_bundles = {

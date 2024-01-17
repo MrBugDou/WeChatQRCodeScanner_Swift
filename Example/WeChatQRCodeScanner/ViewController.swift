@@ -13,16 +13,16 @@ import WeChatQRCodeScanner_Swift
 class ViewController: UIViewController {
     weak var containerLayer: CALayer!
 
-    weak var scannerView: CodeScannerView!
+    weak var scannerView: CodeScannerView?
 
     var reuseMarkLayers: [CAShapeLayer] = []
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         do {
-            scannerView.delegate = self
-            containerLayer.frame = scannerView.layer.bounds
-            try scannerView.startScanner()
+            scannerView?.delegate = self
+            containerLayer.frame = scannerView?.layer.bounds ?? .zero
+            try scannerView?.startScanner()
         } catch {
             print("startScanner error: \(error)")
         }
@@ -30,8 +30,8 @@ class ViewController: UIViewController {
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        scannerView.delegate = nil
-        scannerView.stopScanner()
+        scannerView?.delegate = nil
+        scannerView?.stopScanner()
     }
 
     override func viewDidLoad() {
@@ -64,7 +64,7 @@ class ViewController: UIViewController {
     func drawBottomItems() {
         let bottomItemsView = UIView(frame: CGRect(x: 0.0, y: view.frame.maxY - 100, width: view.frame.size.width, height: 100))
         bottomItemsView.backgroundColor = UIColor(red: 0.0, green: 0.0, blue: 0.0, alpha: 0.6)
-        scannerView.addSubview(bottomItemsView)
+        scannerView?.addSubview(bottomItemsView)
 
         let btnFlash = UIButton(type: .custom)
         btnFlash.setImage(UIImage(named: "QRCodeLightOpen"), for: .normal)
@@ -82,7 +82,7 @@ class ViewController: UIViewController {
     // 开关闪光灯
     @objc func openOrCloseFlash(_ sender: UIButton) {
         sender.isSelected = !sender.isSelected
-        scannerView.changeTorchMode(on: sender.isSelected)
+        scannerView?.changeTorchMode(on: sender.isSelected)
         if sender.isSelected {
             sender.setImage(UIImage(named: "QRCodeLightClose"), for: .normal)
         } else {
@@ -154,7 +154,7 @@ extension ViewController: CodeScannerViewDelegate {
 
         drawCorner(result: result)
 
-        return false
+        return true
     }
 
     func drawCorner(result: [CodeScannerResult]) {
