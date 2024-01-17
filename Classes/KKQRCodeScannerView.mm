@@ -1,13 +1,13 @@
 //
-//  DDQRCodeScannerView.m
+//  KKQRCodeScannerView.m
 //  WeChatQRCodeScanner
 //
 //  Created by king on 2021/2/1.
 //
 
-#import "DDQRCodeScannerView.h"
+#import "KKQRCodeScannerView.h"
 
-#import "DDQRCodeScannerResult.h"
+#import "KKQRCodeScannerResult.h"
 
 #import <AVFoundation/AVFoundation.h>
 
@@ -15,7 +15,7 @@
 #import <opencv2/WeChatQRCode.h>
 #import <opencv2/core/hal/interface.h>
 
-@interface DDQRCodeScannerView () <AVCaptureVideoDataOutputSampleBufferDelegate>
+@interface KKQRCodeScannerView () <AVCaptureVideoDataOutputSampleBufferDelegate>
 @property (nonatomic, strong) AVCaptureSession *session;
 @property (nonatomic, strong) AVCaptureDeviceInput *videoInput;
 @property (nonatomic, strong) AVCaptureVideoDataOutput *dataOutput;
@@ -25,7 +25,7 @@
 @property (nonatomic, assign) BOOL stoped;
 @end
 
-@implementation DDQRCodeScannerView
+@implementation KKQRCodeScannerView
 #if DEBUG
 - (void)dealloc {
 	NSLog(@"[%@ dealloc]", NSStringFromClass(self.class));
@@ -62,10 +62,10 @@
 
 	NSBundle *mainBundle                        = [NSBundle bundleForClass:self.class];
 	NSBundle *bundle                            = [NSBundle bundleWithPath:[mainBundle pathForResource:@"WeChatQRCodeScanner" ofType:@"bundle"]];
-	NSString *detector_prototxt_path            = [bundle pathForResource:@"detect" ofType:@"prototxt" inDirectory:@""];
-	NSString *detector_caffe_model_path         = [bundle pathForResource:@"detect" ofType:@"caffemodel" inDirectory:@""];
-	NSString *super_resolution_prototxt_path    = [bundle pathForResource:@"sr" ofType:@"prototxt" inDirectory:@""];
-	NSString *super_resolution_caffe_model_path = [bundle pathForResource:@"sr" ofType:@"caffemodel" inDirectory:@""];
+	NSString *detector_prototxt_path            = [bundle pathForResource:@"detect" ofType:@"prototxt" inDirectory:@"wechat_qrcode"];
+	NSString *detector_caffe_model_path         = [bundle pathForResource:@"detect" ofType:@"caffemodel" inDirectory:@"wechat_qrcode"];
+	NSString *super_resolution_prototxt_path    = [bundle pathForResource:@"sr" ofType:@"prototxt" inDirectory:@"wechat_qrcode"];
+	NSString *super_resolution_caffe_model_path = [bundle pathForResource:@"sr" ofType:@"caffemodel" inDirectory:@"wechat_qrcode"];
 
 	//	self.detector = [[WeChatQRCode alloc] initWithDetector_prototxt_path:detector_prototxt_path detector_caffe_model_path:detector_caffe_model_path super_resolution_prototxt_path:super_resolution_prototxt_path super_resolution_caffe_model_path:super_resolution_caffe_model_path];
 
@@ -115,12 +115,12 @@
 		return;
 	}
 
-	NSMutableArray<DDQRCodeScannerResult *> *results = nil;
+	NSMutableArray<KKQRCodeScannerResult *> *results = nil;
 	if (res.size() > 0) {
 
 		size_t size = res.size();
 
-		results = [NSMutableArray<DDQRCodeScannerResult *> arrayWithCapacity:size];
+		results = [NSMutableArray<KKQRCodeScannerResult *> arrayWithCapacity:size];
 
 		for (size_t i = 0; i < size; i++) {
 			NSString *content = [NSString stringWithCString:res[i].c_str() encoding:NSUTF8StringEncoding];
@@ -140,7 +140,7 @@
 			transform         = CGAffineTransformScale(transform, sx, sy);
 			CGRect rectOfView = CGRectApplyAffineTransform(rectOfImage, transform);
 
-			DDQRCodeScannerResult *r = [[DDQRCodeScannerResult alloc] initWithContent:content rectOfImage:rectOfImage rectOfView:rectOfView];
+			KKQRCodeScannerResult *r = [[KKQRCodeScannerResult alloc] initWithContent:content rectOfImage:rectOfImage rectOfView:rectOfView];
 			[results addObject:r];
 		}
 	}

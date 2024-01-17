@@ -6,7 +6,6 @@
 // Created by DouDou on 2022/6/15.
 //
 
-import SnapKit
 import UIKit
 
 class ResultViewController: UIViewController {

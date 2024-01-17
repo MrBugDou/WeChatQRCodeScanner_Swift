@@ -6,8 +6,8 @@
 // Created by DouDou on 2022/6/11.
 //
 
+import AVFoundation
 import UIKit
-import Vision
 
 enum Log {
     public static func verbose(_ message: Any..., file: String = #file, function: String = #function, line: Int = #line) {
@@ -61,11 +61,11 @@ enum Log {
     }
 }
 
-public struct CodeScannerResult {
+public struct ScanResult {
     public let content: String
     public let rectOfImage: CGRect
-    public let type: VNBarcodeSymbology
-    public init(content: String, rectOfImage: CGRect, type: VNBarcodeSymbology) {
+    public let type: AVMetadataObject.ObjectType
+    public init(content: String, rectOfImage: CGRect, type: AVMetadataObject.ObjectType) {
         self.type = type
         self.content = content
         self.rectOfImage = rectOfImage

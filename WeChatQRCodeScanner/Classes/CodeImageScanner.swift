@@ -6,55 +6,69 @@
 // Created by DouDou on 2024/1/15.
 //
 
+import AVFoundation
 import Foundation
-import opencv2
 import UIKit
 import Vision
 
 public struct CodeImageScanner {
     public static let shared = CodeImageScanner()
-
-    let scanner: WeChatQRCode
-
-    init() {
-        let bundle: Bundle = .codeScanner
-        guard let detectPrototxt = bundle.path(forResource: "detect", ofType: "prototxt"),
-              let detectCaffemodel = bundle.path(forResource: "detect", ofType: "caffemodel"),
-              let srPrototxt = bundle.path(forResource: "sr", ofType: "prototxt"),
-              let srCaffemodel = bundle.path(forResource: "sr", ofType: "caffemodel") else {
-            scanner = .init()
-            return
+    let scanner = DDCodeImageScanner.shared()
+    public func scan(with image: UIImage) -> [ScanResult] {
+        let datas = scanner.scan(for: image)
+        guard !datas.isEmpty else {
+            return detect(with: image)
         }
-        scanner = .init(detector_prototxt_path: detectPrototxt,
-                        detector_caffe_model_path: detectCaffemodel,
-                        super_resolution_prototxt_path: srPrototxt,
-                        super_resolution_caffe_model_path: srCaffemodel)
-    }
-
-    public func scan(with image: UIImage) -> [CodeScannerResult] {
-//        scan(with: image.mat())
-        detect(with: image)
-    }
-
-    private func scan(with image: Mat) -> [CodeScannerResult] {
-        let points = NSMutableArray()
-        let ret: [String] = scanner.detectAndDecode(img: image, points: points)
-        var result: [CodeScannerResult] = []
-        for idx in 0..<ret.count {
-            guard let point = points[idx] as? Mat else {
+        var results: [ScanResult] = []
+        for data in datas {
+            guard !data.content.isEmpty else {
                 continue
             }
-            result.append(.init(content: ret[idx], rectOfImage: point.rectOfImage, type: .qr))
+            results.append(.init(content: data.content, rectOfImage: data.rectOfImage, type: .qr))
         }
-        return result
+//        detect(with: image)
+        return results
     }
 
-    public func detect(with image: UIImage?) -> [CodeScannerResult] {
-        var detectedBarcodes: [CodeScannerResult] = []
-        guard let cgimg = image?.cgImage else {
-            return detectedBarcodes
+    public func detect(with image: UIImage?) -> [ScanResult] {
+        guard let features = detectQRCode(image), !features.isEmpty else {
+            return detectBarCode(image)
         }
+        return features
+    }
 
+    private func detectQRCode(_ image: UIImage?) -> [ScanResult]? {
+        guard let image = image, let ciImage = CIImage(image: image) else {
+            return nil
+        }
+        
+        // 创建CIDetector用于二维码识别
+        let detector = CIDetector(ofType: CIDetectorTypeQRCode, context: .init(), options: [CIDetectorAccuracy: CIDetectorAccuracyHigh])
+        
+        let orientationKey = kCGImagePropertyOrientation as String
+        let orientationValue = ciImage.properties[orientationKey] ?? 1
+        let options = [CIDetectorImageOrientation: orientationValue]
+        
+        guard let features = detector?.features(in: ciImage, options: options), !features.isEmpty else {
+            return nil
+        }
+    
+        var detectedBarcodes: [ScanResult] = []
+        for data in features {
+            guard let feature = data as? CIQRCodeFeature, let value = feature.messageString, !value.isEmpty else {
+                break
+            }
+            detectedBarcodes.append(.init(content: value, rectOfImage: feature.bounds, type: .qr))
+        }
+        
+        return detectedBarcodes
+    }
+
+    private func detectBarCode(_ image: UIImage?) -> [ScanResult] {
+        guard let cgimg = image?.cgImage, #available(iOS 11.0, *) else {
+            return []
+        }
+        var detectedBarcodes: [ScanResult] = []
         let request = VNDetectBarcodesRequest { req, err in
             if let error = err {
                 Log.error("parseBarCode error: \(error)")
@@ -71,7 +85,11 @@ public struct CodeImageScanner {
                         detectedBarcodes.append(.init(content: value, rectOfImage: rectOfImage, type: .qr))
                         Log.debug("qrcode: \(value) rectOfImage: \(rectOfImage)")
                     } else { // 条形码
-                        detectedBarcodes.append(.init(content: value, rectOfImage: rectOfImage, type: barcode.symbology))
+                        guard let type = convert(from: barcode.symbology) else {
+                            Log.debug("不支持的类型 qrcode: \(value) rectOfImage: \(rectOfImage)")
+                            continue
+                        }
+                        detectedBarcodes.append(.init(content: value, rectOfImage: rectOfImage, type: type))
                         Log.debug("barcode: \(value), rectOfImage: \(rectOfImage), \(barcode.symbology.rawValue)")
                     }
                     break
@@ -85,6 +103,22 @@ public struct CodeImageScanner {
             Log.error("parseBarCode error: \(error)")
         }
         return detectedBarcodes
+    }
+
+    @available(iOS 11.0, *)
+    func convert(from objectType: VNBarcodeSymbology) -> AVMetadataObject.ObjectType? {
+        switch objectType {
+        case .qr:
+            return .qr
+        case .ean8:
+            return .ean8
+        case .ean13:
+            return .ean13
+        case .code128:
+            return .code128
+        default:
+            return nil
+        }
     }
 
     /// image坐标转换

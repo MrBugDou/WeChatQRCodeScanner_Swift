@@ -1,5 +1,5 @@
 //
-//  DDQRCodeScannerResult.h
+//  KKQRCodeScannerResult.h
 //  WeChatQRCodeScanner
 //
 //  Created by king on 2021/2/3.
@@ -9,7 +9,7 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface DDQRCodeScannerResult : NSObject
+@interface KKQRCodeScannerResult : NSObject
 /// 识别的内容
 @property (nonatomic, copy, readonly) NSString *content;
 /// 二维码区域 基于原始图像坐标区域

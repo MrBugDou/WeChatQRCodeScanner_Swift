@@ -11,7 +11,7 @@ import UIKit
 import WeChatQRCodeScanner_Swift
 
 class ViewController: UIViewController {
-    weak var containerLayer: CALayer!
+    weak var containerLayer: CALayer?
 
     weak var scannerView: CodeScannerView?
 
@@ -21,7 +21,7 @@ class ViewController: UIViewController {
         super.viewWillAppear(animated)
         do {
             scannerView?.delegate = self
-            containerLayer.frame = scannerView?.layer.bounds ?? .zero
+            containerLayer?.frame = scannerView?.layer.bounds ?? .zero
             try scannerView?.startScanner()
         } catch {
             print("startScanner error: \(error)")
@@ -37,16 +37,6 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
-//        guard let image = R.image.img_6673PNG() else { return }
-//        let ret = CodeImageScanner.shared.scan(with: image)
-//        print("ret = \(ret)")
-//        let ret1 = DDBarCodeImageScanner().scanner(for: image)
-//        print("ret1 = \(ret1)")
-//
-//        guard let image1 = R.image.qrcodes() else { return }
-//        let ret2 = CodeImageScanner.shared.scan(with: image1)
-//        print("ret1 = \(ret2)")
-
         let scannerView = CodeScannerView(frame: view.bounds)
         scannerView.delegate = self
         view.addSubview(scannerView)
@@ -64,7 +54,7 @@ class ViewController: UIViewController {
     func drawBottomItems() {
         let bottomItemsView = UIView(frame: CGRect(x: 0.0, y: view.frame.maxY - 100, width: view.frame.size.width, height: 100))
         bottomItemsView.backgroundColor = UIColor(red: 0.0, green: 0.0, blue: 0.0, alpha: 0.6)
-        scannerView?.addSubview(bottomItemsView)
+        view.addSubview(bottomItemsView)
 
         let btnFlash = UIButton(type: .custom)
         btnFlash.setImage(UIImage(named: "QRCodeLightOpen"), for: .normal)
@@ -106,14 +96,19 @@ extension ViewController: UIImagePickerControllerDelegate, UINavigationControlle
     // MARK: 相册选择图片识别二维码 （条形码没有找到系统方法）
 
     public func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]) {
-        picker.dismiss(animated: true, completion: nil)
         let editedImage = info[UIImagePickerController.InfoKey.editedImage] as? UIImage
         let originalImage = info[UIImagePickerController.InfoKey.originalImage] as? UIImage
         guard let image = editedImage ?? originalImage else {
             return
         }
         let result = CodeImageScanner.shared.scan(with: image)
+        dismiss(animated: true) { [weak self] in
+            self?.openResultPage(result, image: image)
+        }
 //        let result = DDBarCodeImageScanner().scanner(for: image)
+    }
+    
+    func openResultPage(_ result: [ScanResult], image: UIImage) {
         let format = UIGraphicsImageRendererFormat()
         format.scale = 1
         let renderer = UIGraphicsImageRenderer(size: image.size, format: format)
@@ -131,21 +126,23 @@ extension ViewController: UIImagePickerControllerDelegate, UINavigationControlle
             }
         }
         let resultVc = ResultViewController(with: newImg)
+        resultVc.modalPresentationStyle = .fullScreen
         present(resultVc, animated: true, completion: nil)
-//        print("arrayResult = \(arrayResult)")
+        print("arrayResult = \(result)")
     }
+    
 }
 
 extension ViewController: CodeScannerViewDelegate {
     private func clearMarkLayers() {
-        guard let sublayers = containerLayer.sublayers as? [CAShapeLayer], !sublayers.isEmpty else { return }
+        guard let sublayers = containerLayer?.sublayers as? [CAShapeLayer], !sublayers.isEmpty else { return }
         reuseMarkLayers.append(contentsOf: sublayers)
         sublayers.forEach { layer in
             layer.removeFromSuperlayer()
         }
     }
 
-    func scannerView(_: CodeScannerView, scanComplete result: [CodeScannerResult], elapsedTime _: TimeInterval) -> Bool {
+    func scannerView(_: CodeScannerView, scanComplete result: [ScanResult], elapsedTime _: TimeInterval) -> Bool {
         clearMarkLayers()
 
         if result.isEmpty {
@@ -157,7 +154,7 @@ extension ViewController: CodeScannerViewDelegate {
         return true
     }
 
-    func drawCorner(result: [CodeScannerResult]) {
+    func drawCorner(result: [ScanResult]) {
         for element in result {
             var markLayer: CAShapeLayer
             if !reuseMarkLayers.isEmpty {
@@ -173,7 +170,7 @@ extension ViewController: CodeScannerViewDelegate {
 
             let path = UIBezierPath(rect: element.rectOfImage)
             markLayer.path = path.cgPath
-            containerLayer.addSublayer(markLayer)
+            containerLayer?.addSublayer(markLayer)
 
             print("element = \(element.content)")
         }

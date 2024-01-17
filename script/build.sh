@@ -39,9 +39,6 @@ if [[ ! -d "$OUT_DIR/opencv2.framework" ]]; then
     --without stitching \
     --without world \
     --without highgui \
-    --without imgcodecs \
-    --without features2d \
-    --without flann \
     --without gapi \
     --without photo \
     --without ml \

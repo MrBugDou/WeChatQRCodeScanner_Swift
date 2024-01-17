@@ -19,8 +19,10 @@ Pod::Spec.new do |s|
   s.author = { "MrBugDou" => "bg1859710@gmail.com" }
   s.source = { :git => "https://github.com/MrBugDou/WeChatQRCodeScanner_Swift.git", :tag => s.version.to_s }
 
+  s.requires_arc = true
+  s.static_framework = true
   s.swift_version = "5.8"
-  s.ios.deployment_target = "11.0"
+  s.ios.deployment_target = "9.0"
 
   s.source_files = [
     # "WeChatQRCodeScanner/Classes/Objc/*",
@@ -39,13 +41,13 @@ Pod::Spec.new do |s|
   #     script/build.sh "4.9.0"
   # CMD
 
-  # s.prepare_command = <<-CMD
-  # script/downloadlib.sh "lib-v4.9.0"
-  # CMD
+  #  s.prepare_command = <<-CMD
+  #  script/downloadlib.sh "lib-v4.9.0"
+  #  CMD
 
   s.vendored_frameworks = [
-    "WeChatQRCodeScanner/Frameworks/*.framework",
-  # "WeChatQRCodeScanner/Frameworks/*.xcframework",
+    # "WeChatQRCodeScanner/Frameworks/*.framework",
+    "WeChatQRCodeScanner/Frameworks/*.xcframework",
   ]
 
   s.resource_bundles = {

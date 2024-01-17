@@ -1,23 +1,16 @@
 PODS:
-  - SnapKit (5.6.0)
   - WeChatQRCodeScanner_Swift (1.0.2)
 
 DEPENDENCIES:
-  - SnapKit
   - WeChatQRCodeScanner_Swift (from `../`)
-
-SPEC REPOS:
-  https://github.com/CocoaPods/Specs.git:
-    - SnapKit
 
 EXTERNAL SOURCES:
   WeChatQRCodeScanner_Swift:
     :path: "../"
 
 SPEC CHECKSUMS:
-  SnapKit: e01d52ebb8ddbc333eefe2132acf85c8227d9c25
-  WeChatQRCodeScanner_Swift: 531d65be2cc0c348e515c73a7b1586d1ce4f8bed
+  WeChatQRCodeScanner_Swift: 1469d9ec9021e6352de3a7f9814c5e542bcbc94a
 
-PODFILE CHECKSUM: 6a1fccd86760d88c44f30a0f9ae68065543cc3bd
+PODFILE CHECKSUM: 61979521d606fc1aa545eb8242b8d8aaafd16c1f
 
 COCOAPODS: 1.14.3

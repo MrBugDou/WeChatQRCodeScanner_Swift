@@ -7,12 +7,11 @@
 //
 
 import AVFoundation
-import opencv2
 import UIKit
 import Vision
 
 public protocol CodeScannerViewDelegate: NSObjectProtocol {
-    func scannerView(_ view: CodeScannerView, scanComplete result: [CodeScannerResult], elapsedTime: TimeInterval) -> Bool
+    func scannerView(_ view: CodeScannerView, scanComplete result: [ScanResult], elapsedTime: TimeInterval) -> Bool
 }
 
 public class CodeScannerView: UIView {
@@ -22,13 +21,22 @@ public class CodeScannerView: UIView {
 
     public weak var previewLayer: AVCaptureVideoPreviewLayer?
 
-    public override func layoutSubviews() {
+    override public func layoutSubviews() {
         super.layoutSubviews()
         previewBounds = bounds
         previewLayer?.frame = bounds
     }
-    
+
     public func startScanner() throws {
+        
+        guard session == nil else {
+            if session?.isRunning == false {
+                stoped = false
+                session?.startRunning()
+            }
+            return
+        }
+        
         guard let device = AVCaptureDevice.default(for: .video) else {
             return
         }
@@ -123,7 +131,7 @@ public class CodeScannerView: UIView {
 
         device.unlockForConfiguration()
     }
-    
+
     // MARK: Internal
 
     var stoped: Bool = false
@@ -161,7 +169,7 @@ extension CodeScannerView: AVCaptureMetadataOutputObjectsDelegate {
         let start = CACurrentMediaTime()
         let elapsedTime = CACurrentMediaTime() - start
 
-        var result: [CodeScannerResult] = []
+        var result: [ScanResult] = []
 
         for read in reads {
             guard let content = read.stringValue, !content.isEmpty else {
@@ -169,14 +177,9 @@ extension CodeScannerView: AVCaptureMetadataOutputObjectsDelegate {
                 break
             }
 
-            guard let type = convert(from: read.type) else {
-                Log.debug("不支持的码类型: \(read.type.rawValue) - \(content)")
-                break
-            }
+            Log.debug("code: \(content), type: \(read.type.rawValue) bounds: \(read.bounds)")
 
-            Log.debug("code: \(content), type: \(type.rawValue) bounds: \(read.bounds)")
-
-            result.append(.init(content: content, rectOfImage: read.bounds, type: type))
+            result.append(.init(content: content, rectOfImage: read.bounds, type: read.type))
         }
 
         DispatchQueue.main.async { [weak self] in
@@ -191,21 +194,6 @@ extension CodeScannerView: AVCaptureMetadataOutputObjectsDelegate {
             self?.stopScanner()
         }
     }
-
-    func convert(from objectType: AVMetadataObject.ObjectType) -> VNBarcodeSymbology? {
-        switch objectType {
-        case .qr:
-            return .qr
-        case .ean8:
-            return .ean8
-        case .ean13:
-            return .ean13
-        case .code128:
-            return .code128
-        default:
-            return nil
-        }
-    }
 }
 
 extension CodeScannerView: AVCaptureVideoDataOutputSampleBufferDelegate {
@@ -218,60 +206,38 @@ extension CodeScannerView: AVCaptureVideoDataOutputSampleBufferDelegate {
             return
         }
 
-        CVPixelBufferLockBaseAddress(pixelBuffer, .readOnly)
+        let start = CACurrentMediaTime()
+        let datas = DDCodeImageScanner.shared().scan(forImageBuf: pixelBuffer)
 
-        guard let imgBufAddr = CVPixelBufferGetBaseAddressOfPlane(pixelBuffer, 0) else {
+        guard !stoped, !datas.isEmpty else {
             return
         }
 
         let width = CVPixelBufferGetWidth(pixelBuffer)
         let height = CVPixelBufferGetHeight(pixelBuffer)
-        let bytesPerRow = CVPixelBufferGetBytesPerRow(pixelBuffer)
 
-//        let ciImage = CIImage(cvImageBuffer: pixelBuffer)
-//        let image = UIImage(ciImage: ciImage)
-        let imgData = Data(bytes: imgBufAddr, count: bytesPerRow * height)
-
-        let mat = Mat(rows: Int32(height), cols: Int32(width), type: CV_8UC4, data: imgData, step: 0)
-
-        let transMat = Mat()
-        Core.transpose(src: mat, dst: transMat)
-
-        let flipMat = Mat()
-        Core.flip(src: transMat, dst: flipMat, flipCode: 1)
-
-        CVPixelBufferUnlockBaseAddress(pixelBuffer, .readOnly)
-
-        let points = NSMutableArray()
-        let ret: [String] = CodeImageScanner.shared.scanner.detectAndDecode(img: flipMat, points: points)
-
-        guard !stoped, !ret.isEmpty else {
-            return
-        }
-
-        // 在这里处理扫描到的条形码
-        AudioServicesPlaySystemSound(SystemSoundID(kSystemSoundID_Vibrate))
-
-        let start = CACurrentMediaTime()
-        var result: [CodeScannerResult] = []
-        let elapsedTime = CACurrentMediaTime() - start
-        for idx in 0..<ret.count {
-            guard let point = points[idx] as? Mat else {
+        var results: [ScanResult] = []
+        for data in datas {
+            guard !data.content.isEmpty else {
                 continue
             }
             let sx = previewBounds.width / CGFloat(height)
             let sy = previewBounds.height / CGFloat(width)
             let transform = CGAffineTransform.identity.scaledBy(x: sx, y: sy)
-            let rectOfView = point.rectOfImage.applying(transform)
-            Log.debug("code: \(ret[idx]), rectOfImage: \(point.rectOfImage)")
-            result.append(.init(content: ret[idx], rectOfImage: rectOfView, type: .qr))
+            let rectOfView = data.rectOfImage.applying(transform)
+            Log.debug("code: \(data.content), rectOfImage: \(data.rectOfImage)")
+            results.append(.init(content: data.content, rectOfImage: rectOfView, type: .qr))
         }
+
+        // 在这里处理扫描到的条形码
+        AudioServicesPlaySystemSound(SystemSoundID(kSystemSoundID_Vibrate))
+        let elapsedTime = CACurrentMediaTime() - start
 
         DispatchQueue.main.async { [weak self] in
             guard let sSelf = self else {
                 return
             }
-            let stoped = self?.delegate?.scannerView(sSelf, scanComplete: result, elapsedTime: elapsedTime as TimeInterval) ?? false
+            let stoped = self?.delegate?.scannerView(sSelf, scanComplete: results, elapsedTime: elapsedTime as TimeInterval) ?? false
             self?.stoped = stoped
             guard stoped else {
                 return
