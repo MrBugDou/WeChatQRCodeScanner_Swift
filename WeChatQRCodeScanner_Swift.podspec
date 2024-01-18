@@ -70,7 +70,6 @@ Pod::Spec.new do |s|
     "Accelerate",
     "CoreVideo",
     "CoreMedia",
-    "IOSurface",
   ]
 
   s.libraries = [

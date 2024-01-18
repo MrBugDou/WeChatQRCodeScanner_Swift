@@ -9,7 +9,7 @@ EXTERNAL SOURCES:
     :path: "../"
 
 SPEC CHECKSUMS:
-  WeChatQRCodeScanner_Swift: dd8df7fd94ce12245fbf84586fcbc3a4b0738635
+  WeChatQRCodeScanner_Swift: e1c5cbe411f97d26c559682814648492d608534c
 
 PODFILE CHECKSUM: 61979521d606fc1aa545eb8242b8d8aaafd16c1f
 
