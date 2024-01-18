@@ -41,9 +41,9 @@ Pod::Spec.new do |s|
   #     script/build.sh "4.9.0"
   # CMD
 
-  #  s.prepare_command = <<-CMD
-  #  script/downloadlib.sh "lib-v4.9.0"
-  #  CMD
+  s.prepare_command = <<-CMD
+   script/downloadlib.sh "lib-v4.9.0"
+   CMD
 
   s.vendored_frameworks = [
     # "WeChatQRCodeScanner/Frameworks/*.framework",
