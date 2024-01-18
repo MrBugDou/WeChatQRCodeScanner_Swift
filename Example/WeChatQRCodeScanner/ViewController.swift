@@ -151,7 +151,7 @@ extension ViewController: CodeScannerViewDelegate {
 
         drawCorner(result: result)
 
-        return true
+        return false
     }
 
     func drawCorner(result: [ScanResult]) {

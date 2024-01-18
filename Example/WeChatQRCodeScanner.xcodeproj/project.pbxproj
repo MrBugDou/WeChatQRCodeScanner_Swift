@@ -17,6 +17,7 @@
 		DB6B14F2285356060028CC3B /* WeChatQRCodeScannerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB6B14F1285356060028CC3B /* WeChatQRCodeScannerTests.swift */; };
 		DB850B2B28598D1000284AA3 /* 4_barcodes.jpg in Resources */ = {isa = PBXBuildFile; fileRef = DB850B2A28598D1000284AA3 /* 4_barcodes.jpg */; };
 		DB850B312859CE6C00284AA3 /* Permissions.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB850B302859CE6B00284AA3 /* Permissions.swift */; };
+		DBC46CE52B58DF7D00E86613 /* IOSurface.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DBC46CE42B58DF7D00E86613 /* IOSurface.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -49,6 +50,7 @@
 		DB6B14F1285356060028CC3B /* WeChatQRCodeScannerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeChatQRCodeScannerTests.swift; sourceTree = "<group>"; };
 		DB850B2A28598D1000284AA3 /* 4_barcodes.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = 4_barcodes.jpg; sourceTree = "<group>"; };
 		DB850B302859CE6B00284AA3 /* Permissions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Permissions.swift; sourceTree = "<group>"; };
+		DBC46CE42B58DF7D00E86613 /* IOSurface.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOSurface.framework; path = System/Library/Frameworks/IOSurface.framework; sourceTree = SDKROOT; };
 		E2AB05F0A7638507897C18B0 /* Pods_WeChatQRCodeScannerTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_WeChatQRCodeScannerTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -57,6 +59,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DBC46CE52B58DF7D00E86613 /* IOSurface.framework in Frameworks */,
 				610D3162B213A2BE253AD5E0 /* Pods_WeChatQRCodeScanner.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -75,6 +78,7 @@
 		678272C32744427688958F5E /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				DBC46CE42B58DF7D00E86613 /* IOSurface.framework */,
 				C02269D0BC6276CE565BEAF5 /* Pods_WeChatQRCodeScanner.framework */,
 				E2AB05F0A7638507897C18B0 /* Pods_WeChatQRCodeScannerTests.framework */,
 			);

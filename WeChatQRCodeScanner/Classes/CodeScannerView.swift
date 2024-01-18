@@ -61,10 +61,10 @@ public class CodeScannerView: UIView {
         }
 
         // 设置输出以检测条形码
-        let metadataOutput = AVCaptureMetadataOutput()
+//        let metadataOutput = AVCaptureMetadataOutput()
 
         // opencv
-//        let metadataOutput = AVCaptureVideoDataOutput()
+        let metadataOutput = AVCaptureVideoDataOutput()
 
         var videoConnection: AVCaptureConnection?
         for connection in metadataOutput.connections {
@@ -84,14 +84,14 @@ public class CodeScannerView: UIView {
         if session.canAddOutput(metadataOutput) {
             session.addOutput(metadataOutput)
             // 设置输出以检测条形码
-            metadataOutput.setMetadataObjectsDelegate(self, queue: sessionQueue)
-            metadataOutput.metadataObjectTypes = [.qr, .ean8, .ean13, .code128] // 可以根据需要添加其他类型
-            metadataOutput.rectOfInterest = .init(x: 0, y: 0, width: 1, height: 1) // 全屏扫描
+//            metadataOutput.setMetadataObjectsDelegate(self, queue: sessionQueue)
+//            metadataOutput.metadataObjectTypes = [.qr, .ean8, .ean13, .code128] // 可以根据需要添加其他类型
+//            metadataOutput.rectOfInterest = .init(x: 0, y: 0, width: 1, height: 1) // 全屏扫描
             // opencv
-//            let key = kCVPixelBufferPixelFormatTypeKey as String
-//            metadataOutput.videoSettings = [key: kCVPixelFormatType_32BGRA]
-//            metadataOutput.alwaysDiscardsLateVideoFrames = true
-//            metadataOutput.setSampleBufferDelegate(self, queue: sessionQueue)
+            let key = kCVPixelBufferPixelFormatTypeKey as String
+            metadataOutput.videoSettings = [key: kCVPixelFormatType_32BGRA]
+            metadataOutput.alwaysDiscardsLateVideoFrames = true
+            metadataOutput.setSampleBufferDelegate(self, queue: sessionQueue)
         }
 
         let previewLayer = AVCaptureVideoPreviewLayer(session: session)

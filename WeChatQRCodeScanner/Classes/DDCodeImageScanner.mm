@@ -12,7 +12,7 @@
 
 @interface DDCodeImageScanner ()
 
-@property (nonatomic, strong) WeChatQRCode *wechatDetector;
+//@property (nonatomic, strong) WeChatQRCode *wechatDetector;
 
 @property (nonatomic, assign) cv::Ptr<cv::wechat_qrcode::WeChatQRCode> detector;
 @end
@@ -54,10 +54,10 @@
                                                                  detector_caffe_model_path.UTF8String,
                                                                  super_resolution_prototxt_path.UTF8String,
                                                                  super_resolution_caffe_model_path.UTF8String);
-        _wechatDetector = [[WeChatQRCode alloc] initWithDetector_prototxt_path:detector_prototxt_path
-                                                     detector_caffe_model_path:detector_caffe_model_path
-                                                super_resolution_prototxt_path:super_resolution_prototxt_path
-                                             super_resolution_caffe_model_path:super_resolution_caffe_model_path];
+//        _wechatDetector = [[WeChatQRCode alloc] initWithDetector_prototxt_path:detector_prototxt_path
+//                                                     detector_caffe_model_path:detector_caffe_model_path
+//                                                super_resolution_prototxt_path:super_resolution_prototxt_path
+//                                             super_resolution_caffe_model_path:super_resolution_caffe_model_path];
     }
     
 }
@@ -141,32 +141,56 @@ void CGImageToMat(const CGImageRef image, cv::Mat& m, bool alphaExist) {
 }
 
 - (NSArray<DDQRCodeResult *> *)scanForImageBuf:(CVImageBufferRef)imgBuf {
-    if (imgBuf == NULL) {
+    if (!imgBuf) {
         return nil;
     }
-    CVPixelBufferLockBaseAddress(imgBuf, 0);
-    
-    void *imgBufAddr = CVPixelBufferGetBaseAddressOfPlane(imgBuf, 0);
-    
-    int w = (int)CVPixelBufferGetWidth(imgBuf);
-    int h = (int)CVPixelBufferGetHeight(imgBuf);
-    
-    auto mat = cv::Mat(h, w, CV_8UC4, imgBufAddr, 0);
-    
-    cv::Mat transMat;
-    cv::transpose(mat, transMat);
-    
-    cv::Mat flipMat;
-    cv::flip(transMat, flipMat, 1);
-    
-    CVPixelBufferUnlockBaseAddress(imgBuf, 0);
 
-    NSMutableArray<DDQRCodeResult *> *results = [self scanForCvMat:flipMat];
-    transMat.release();
-    flipMat.release();
-    mat.release();
-    
-    return results;
+    @autoreleasepool {
+        CVPixelBufferLockBaseAddress(imgBuf, kCVPixelBufferLock_ReadOnly);
+        
+        void *imgBufAddr = CVPixelBufferGetBaseAddressOfPlane(imgBuf, 0);
+        
+        int w = (int)CVPixelBufferGetWidth(imgBuf);
+        int h = (int)CVPixelBufferGetHeight(imgBuf);
+        
+        auto mat = cv::Mat(h, w, CV_8UC4, imgBufAddr, 0);
+        
+        cv::Mat transMat;
+        cv::transpose(mat, transMat);
+        
+        cv::Mat flipMat;
+        cv::flip(transMat, flipMat, 1);
+        
+        CVPixelBufferUnlockBaseAddress(imgBuf, kCVPixelBufferLock_ReadOnly);
+
+        NSMutableArray<DDQRCodeResult *> *results = [self scanForCvMat:flipMat];
+        transMat.release();
+        flipMat.release();
+        mat.release();
+        
+        return results;
+//        CVPixelBufferLockBaseAddress(imgBuf, kCVPixelBufferLock_ReadOnly);
+//        size_t width = CVPixelBufferGetWidth(imgBuf);
+//        size_t height = CVPixelBufferGetHeight(imgBuf);
+//        void* baseAddress = CVPixelBufferGetBaseAddress(imgBuf);
+//
+//        CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
+//        CGContextRef context = CGBitmapContextCreate(baseAddress, width, height, 8, CVPixelBufferGetBytesPerRow(imgBuf), colorSpace, kCGBitmapByteOrder32Little | kCGImageAlphaPremultipliedFirst);
+//
+//        CGImageRef quartzImage = CGBitmapContextCreateImage(context);
+//
+//        cv::Mat cvMat;
+//        CGImageToMat(quartzImage, cvMat, false);
+//
+//        // 释放资源
+//        CGContextRelease(context);
+//        CGImageRelease(quartzImage);
+//        CGColorSpaceRelease(colorSpace);
+//        CVPixelBufferUnlockBaseAddress(imgBuf, kCVPixelBufferLock_ReadOnly);
+//
+//        NSMutableArray<DDQRCodeResult *> *results = [self scanForCvMat:cvMat];
+//        return results;
+    }
 }
 
 - (NSArray<DDQRCodeResult *> *)scanForCvMat:(cv::Mat)cvMat{
@@ -208,29 +232,29 @@ void CGImageToMat(const CGImageRef image, cv::Mat& m, bool alphaExist) {
     return results;
 }
 
-- (NSArray<DDQRCodeResult *> *)scanForMat:(Mat *)mat{
-    if (!mat) {
-        return nil;
-    }
-    NSMutableArray *points = [NSMutableArray array];
-    NSArray *datas = [_wechatDetector detectAndDecode:mat points:points];
-    if (datas.count == 0) {
-        return nil;
-    }
-    NSMutableArray<DDQRCodeResult *> *results = [NSMutableArray arrayWithCapacity:datas.count];
-    for (int i = 0; i < datas.count; i++) {
-        Mat *point = points[i];
-        NSString *content = datas[i];
-        CGPoint topLeft    = CGPointMake([[point get:0 col:0] firstObject].doubleValue, [[point get:0 col:1] firstObject].doubleValue);
-        CGPoint topRight   = CGPointMake([[point get:1 col:0] firstObject].doubleValue, [[point get:1 col:1] firstObject].doubleValue);
-        CGPoint bottomLeft = CGPointMake([[point get:2 col:0] firstObject].doubleValue, [[point get:2 col:1] firstObject].doubleValue);
-        CGPoint bottomRight = CGPointMake([[point get:3 col:0] firstObject].doubleValue, [[point get:3 col:1] firstObject].doubleValue);
-        NSLog(@"%@, %@, %@, %@", NSStringFromCGPoint(topLeft), NSStringFromCGPoint(topRight), NSStringFromCGPoint(bottomLeft), NSStringFromCGPoint(bottomRight));
-        CGRect rectOfImage = (CGRect){topLeft, CGSizeMake(topRight.x - topLeft.x, bottomLeft.y - topLeft.y)};
-        [results addObject:[[DDQRCodeResult alloc] initWithContent:content rectOfImage:rectOfImage]];
-    }
-    return results;
-}
+//- (NSArray<DDQRCodeResult *> *)scanForMat:(Mat *)mat{
+//    if (!mat) {
+//        return nil;
+//    }
+//    NSMutableArray *points = [NSMutableArray array];
+//    NSArray *datas = [_wechatDetector detectAndDecode:mat points:points];
+//    if (datas.count == 0) {
+//        return nil;
+//    }
+//    NSMutableArray<DDQRCodeResult *> *results = [NSMutableArray arrayWithCapacity:datas.count];
+//    for (int i = 0; i < datas.count; i++) {
+//        Mat *point = points[i];
+//        NSString *content = datas[i];
+//        CGPoint topLeft    = CGPointMake([[point get:0 col:0] firstObject].doubleValue, [[point get:0 col:1] firstObject].doubleValue);
+//        CGPoint topRight   = CGPointMake([[point get:1 col:0] firstObject].doubleValue, [[point get:1 col:1] firstObject].doubleValue);
+//        CGPoint bottomLeft = CGPointMake([[point get:2 col:0] firstObject].doubleValue, [[point get:2 col:1] firstObject].doubleValue);
+//        CGPoint bottomRight = CGPointMake([[point get:3 col:0] firstObject].doubleValue, [[point get:3 col:1] firstObject].doubleValue);
+//        NSLog(@"%@, %@, %@, %@", NSStringFromCGPoint(topLeft), NSStringFromCGPoint(topRight), NSStringFromCGPoint(bottomLeft), NSStringFromCGPoint(bottomRight));
+//        CGRect rectOfImage = (CGRect){topLeft, CGSizeMake(topRight.x - topLeft.x, bottomLeft.y - topLeft.y)};
+//        [results addObject:[[DDQRCodeResult alloc] initWithContent:content rectOfImage:rectOfImage]];
+//    }
+//    return results;
+//}
 
 @end
 
